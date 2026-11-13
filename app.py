@@ -4,11 +4,28 @@ import streamlit as st
 
 from src import auth, store
 from src.answer import answer_question
+from seed_users import seed_demo_users
 
 DOCS_FOLDER = Path("sample_policies")
 DOCS_FOLDER.mkdir(exist_ok=True)
 
 st.set_page_config(page_title="HR Policy Assistant")
+
+
+@st.cache_resource
+def seed_on_startup():
+    """Runs once per server start. Does nothing if the data already exists."""
+    # 1) Demo users (existing usernames are skipped)
+    seed_demo_users()
+    # 2) Sample documents, only if the search index is empty
+    if not store.list_sources():
+        for f in sorted(DOCS_FOLDER.iterdir()):
+            if f.suffix.lower() in {".txt", ".pdf", ".docx"}:
+                store.ingest_file(f)
+
+
+with st.spinner("Setting up demo data (first start only)..."):
+    seed_on_startup()
 
 
 def is_admin():

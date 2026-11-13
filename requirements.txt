@@ -1,3 +1,4 @@
+--extra-index-url https://download.pytorch.org/whl/cpu
 aiohappyeyeballs==2.7.1
 aiohttp==3.14.5
 aiohttp-retry==2.9.1
@@ -108,8 +109,6 @@ threadpoolctl==3.8.0
 tokenizers==0.23.3
 torch==2.15.0
 tqdm==4.70.1
-transformers==5.22.2
-truststore==0.10.5
 typer==0.29.0
 typing-inspection==0.4.5
 typing_extensions==4.16.0

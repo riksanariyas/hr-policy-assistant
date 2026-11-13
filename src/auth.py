@@ -36,6 +36,29 @@ def create_user(username, password, role):
         raise ValueError(f"Username '{username}' already exists.")
 
 
+def reset_password(username, new_password):
+    """Set a new password for an existing user. Stored hashed, like create_user."""
+    username = username.strip().lower()
+    if len(new_password) < 6:
+        raise ValueError("Password needs 6+ characters.")
+    hashed = bcrypt.hashpw(new_password.encode("utf-8"), bcrypt.gensalt())
+    with closing(_connect()) as conn:
+        cur = conn.execute(
+            "UPDATE users SET password_hash = ? WHERE username = ?",
+            (hashed, username),
+        )
+        conn.commit()
+        if cur.rowcount == 0:
+            raise ValueError(f"User '{username}' not found.")
+
+
+def list_usernames():
+    """Usernames only, never password hashes."""
+    with closing(_connect()) as conn:
+        rows = conn.execute("SELECT username FROM users ORDER BY username").fetchall()
+    return [r[0] for r in rows]
+
+
 def verify_user(username, password):
     """Return {'username', 'role'} if the login is correct, otherwise None."""
     username = username.strip().lower()

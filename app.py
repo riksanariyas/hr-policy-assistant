@@ -48,6 +48,12 @@ def login_screen():
         else:
             st.error("Wrong username or password.")
 
+    with st.expander("Forgot password?"):
+        st.write(
+            "Please contact your admin or HR. They can set a new temporary "
+            "password for you. You can then log in with it."
+        )
+
 
 def chat_screen():
     st.title("HR Policy Assistant")
@@ -90,6 +96,35 @@ def chat_screen():
         )
 
 
+def users_section():
+    """Admin-only tools: add a user and reset a password."""
+    st.subheader("Add a user")
+    with st.form("add_user", clear_on_submit=True):
+        new_name = st.text_input("Username")
+        new_pass = st.text_input("Temporary password (6+ characters)", type="password")
+        new_role = st.selectbox("Role", ["employee", "admin"])
+        add = st.form_submit_button("Create user")
+    if add:
+        try:
+            auth.create_user(new_name, new_pass, new_role)
+            st.success(f"Created {new_role}: {new_name.strip().lower()}")
+        except ValueError as e:
+            st.error(str(e))
+
+    st.subheader("Reset a password")
+    names = auth.list_usernames()
+    with st.form("reset_password", clear_on_submit=True):
+        target_user = st.selectbox("User", names)
+        temp_pass = st.text_input("New temporary password (6+ characters)", type="password")
+        reset = st.form_submit_button("Reset password")
+    if reset:
+        try:
+            auth.reset_password(target_user, temp_pass)
+            st.success(f"Password reset for {target_user}. Share the new password with them.")
+        except ValueError as e:
+            st.error(str(e))
+
+
 def admin_screen():
     # Access is checked in code, not only by hiding the menu item
     if not is_admin():
@@ -128,21 +163,23 @@ def admin_screen():
 
     st.subheader("Current documents")
     sources = store.list_sources()
-    if not sources:
+    if sources:
+        for source, count in sources.items():
+            st.write(f"- {source} ({count} sections)")
+
+        st.subheader("Delete a document")
+        choice = st.selectbox("Choose a document", list(sources))
+        confirm = st.checkbox(f"Yes, delete {choice}")
+        if st.button("Delete", disabled=not confirm):
+            store.delete_source(choice)
+            (DOCS_FOLDER / choice).unlink(missing_ok=True)
+            st.session_state.flash = f"Deleted {choice}."
+            st.rerun()
+    else:
         st.info("No documents yet.")
-        return
 
-    for source, count in sources.items():
-        st.write(f"- {source} ({count} sections)")
-
-    st.subheader("Delete a document")
-    choice = st.selectbox("Choose a document", list(sources))
-    confirm = st.checkbox(f"Yes, delete {choice}")
-    if st.button("Delete", disabled=not confirm):
-        store.delete_source(choice)
-        (DOCS_FOLDER / choice).unlink(missing_ok=True)
-        st.session_state.flash = f"Deleted {choice}."
-        st.rerun()
+    st.divider()
+    users_section()
 
 
 # ---- Main ----

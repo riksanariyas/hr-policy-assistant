@@ -1,0 +1,148 @@
+from pathlib import Path
+
+import streamlit as st
+
+from src import auth, store
+from src.answer import answer_question
+
+DOCS_FOLDER = Path("sample_policies")
+DOCS_FOLDER.mkdir(exist_ok=True)
+
+st.set_page_config(page_title="HR Policy Assistant")
+
+
+def is_admin():
+    user = st.session_state.get("user")
+    return bool(user) and user["role"] == "admin"
+
+
+def login_screen():
+    st.title("HR Policy Assistant")
+    st.subheader("Log in")
+    with st.form("login"):
+        username = st.text_input("Username")
+        password = st.text_input("Password", type="password")
+        submitted = st.form_submit_button("Log in")
+    if submitted:
+        user = auth.verify_user(username, password)
+        if user:
+            st.session_state.user = user
+            st.rerun()
+        else:
+            st.error("Wrong username or password.")
+
+
+def chat_screen():
+    st.title("HR Policy Assistant")
+    st.caption("Answers come only from company policy documents.")
+
+    if "messages" not in st.session_state:
+        st.session_state.messages = [
+            {
+                "role": "assistant",
+                "content": "Hi! Ask me about leave, notice period, working hours, "
+                "reimbursement and other company policies.",
+            }
+        ]
+
+    for m in st.session_state.messages:
+        with st.chat_message(m["role"]):
+            st.markdown(m["content"])
+            if m.get("sources"):
+                st.caption("Sources: " + "; ".join(m["sources"]))
+
+    question = st.chat_input("Ask a policy question")
+    if question and question.strip():
+        st.session_state.messages.append({"role": "user", "content": question})
+        with st.chat_message("user"):
+            st.markdown(question)
+
+        with st.chat_message("assistant"):
+            with st.spinner("Checking the policies..."):
+                result = answer_question(question)
+            st.markdown(result["answer"])
+            if result["sources"]:
+                st.caption("Sources: " + "; ".join(result["sources"]))
+
+        st.session_state.messages.append(
+            {
+                "role": "assistant",
+                "content": result["answer"],
+                "sources": result["sources"],
+            }
+        )
+
+
+def admin_screen():
+    # Access is checked in code, not only by hiding the menu item
+    if not is_admin():
+        st.error("Access denied. Admins only.")
+        return
+
+    st.title("Document management")
+
+    flash = st.session_state.pop("flash", None)
+    if flash:
+        st.success(flash)
+
+    st.subheader("Upload or replace a document")
+    st.caption("Uploading a file with the same name replaces the old version.")
+    uploaded = st.file_uploader("Choose a PDF, DOCX or TXT file", type=["pdf", "docx", "txt"])
+
+    if uploaded and st.button("Save document"):
+        name = Path(uploaded.name).name  # strip any folder part
+        target = DOCS_FOLDER / name
+        existed = target.exists()
+        backup = target.read_bytes() if existed else None
+        target.write_bytes(uploaded.getvalue())
+        try:
+            with st.spinner("Reading and storing the document..."):
+                n = store.ingest_file(target)
+            verb = "Replaced" if existed else "Added"
+            st.session_state.flash = f"{verb} {name} ({n} sections stored)."
+            st.rerun()
+        except Exception as e:
+            # undo the file change so the folder and the search stay consistent
+            if existed:
+                target.write_bytes(backup)
+            else:
+                target.unlink(missing_ok=True)
+            st.error(f"Could not add '{name}': {e}")
+
+    st.subheader("Current documents")
+    sources = store.list_sources()
+    if not sources:
+        st.info("No documents yet.")
+        return
+
+    for source, count in sources.items():
+        st.write(f"- {source} ({count} sections)")
+
+    st.subheader("Delete a document")
+    choice = st.selectbox("Choose a document", list(sources))
+    confirm = st.checkbox(f"Yes, delete {choice}")
+    if st.button("Delete", disabled=not confirm):
+        store.delete_source(choice)
+        (DOCS_FOLDER / choice).unlink(missing_ok=True)
+        st.session_state.flash = f"Deleted {choice}."
+        st.rerun()
+
+
+# ---- Main ----
+user = st.session_state.get("user")
+if not user:
+    login_screen()
+    st.stop()
+
+with st.sidebar:
+    st.write(f"Logged in as **{user['username']}** ({user['role']})")
+    pages = ["Chat"] + (["Admin: documents"] if user["role"] == "admin" else [])
+    page = st.radio("Go to", pages)
+    if st.button("Log out"):
+        st.session_state.clear()
+        st.rerun()
+
+if page == "Chat":
+    chat_screen()
+else:
+    admin_screen()

@@ -1,0 +1,21 @@
+id,category,question,expected_answer,expected_source,must_fallback
+1,policy,How many casual leaves do I get per year?,12 casual leaves per year,leave_policy.txt - Casual Leave,no
+2,policy,Can I carry forward unused casual leave?,No - casual leave cannot be carried forward,leave_policy.txt - Casual Leave,no
+3,policy,Do I need a medical certificate for sick leave?,Yes if sick leave is more than 2 consecutive days,leave_policy.txt - Sick Leave,no
+4,policy,What is the notice period after confirmation?,60 days,notice_period_policy.txt - Notice Period After Confirmation,no
+5,policy,What is the notice period during probation?,15 days,notice_period_policy.txt - Notice Period During Probation,no
+6,policy,What are the office working hours?,9:30 AM to 6:30 PM Mon-Fri; 1st and 3rd Saturdays 9:30 AM to 1:30 PM,wfh_attendance_policy.txt - Office Working Hours,no
+7,policy,How many days can I work from home?,Up to 2 days a week after probation with manager approval,wfh_attendance_policy.txt - Work From Home Eligibility,no
+8,policy,What happens if I come late three times in a month?,Three late marks count as one half-day of casual leave,wfh_attendance_policy.txt - Late Arrival,no
+9,policy,How much internet allowance can I claim?,Up to Rs. 500 per month with the bill for approved WFH employees,reimbursement_policy.txt - Internet Allowance,no
+10,policy,How many paid holidays are there in 2027?,7,holiday_list.txt - Number of Holidays,no
+11,policy,When is salary paid?,On the last working day of each month,company_faqs.txt - When is salary paid,no
+12,policy,How do I contact HR?,hr@samplestartup.example; ext 101; 10 AM to 5 PM Mon-Fri,hr_contacts.txt - HR Department,no
+13,rights,How many weeks of maternity leave are women entitled to?,26 weeks for the first two children plus not-legal-advice disclaimer,employee_rights.txt - Maternity Benefit,no
+14,rights,How is overtime paid?,At not less than twice the normal rate plus disclaimer,employee_rights.txt - Overtime,no
+15,fallback,Does the company provide health insurance?,This is not in the policy please contact HR + HR contact details,none,yes
+16,fallback,When is the annual appraisal and bonus decided?,Same fallback,none,yes
+17,fallback,Is there a relocation allowance?,Same fallback,none,yes
+18,fallback,What is the yearly training budget per employee?,Same fallback,none,yes
+19,personal,What is my leave balance?,Polite refusal - personal data not supported and no invented number,none,yes
+20,personal,How many hours did I work this month and what is my salary?,Polite refusal - no guessing,none,yes

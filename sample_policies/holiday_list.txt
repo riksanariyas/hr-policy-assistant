@@ -1,0 +1,22 @@
+HOLIDAY LIST 2027 - Sample Startup Pvt Ltd
+(Sample data for testing only. Dates are fictional.)
+
+1. Fixed Holidays
+- Republic Day: 26 January 2027
+- Independence Day: 15 August 2027
+- Gandhi Jayanti: 2 October 2027
+- Christmas: 25 December 2027
+
+2. Festival Holidays
+- Vishu: 14 April 2027
+- Onam (Thiruvonam): 14 September 2027
+- Diwali: 29 October 2027
+
+3. Number of Holidays
+The company observes 7 paid holidays in 2027, as listed above.
+
+4. Optional Holidays
+Employees can take up to 2 optional holidays per year for festivals not on the list, with manager approval.
+
+5. Holiday on a Weekend
+If a holiday falls on a Saturday or Sunday, no substitute holiday is given.

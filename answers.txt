@@ -1,0 +1,100 @@
+
+#1 [policy] How many casual leaves do I get per year?
+   ANSWER: Every employee gets 12 casual leaves per year.
+   SOURCES: ['leave_policy.txt - Casual Leave']
+   EXPECTED: 12 casual leaves per year
+
+#2 [policy] Can I carry forward unused casual leave?
+   ANSWER: Casual leave cannot be carried forward to the next year.
+   SOURCES: ['leave_policy.txt - Casual Leave']
+   EXPECTED: No - casual leave cannot be carried forward
+
+#3 [policy] Do I need a medical certificate for sick leave?
+   ANSWER: Yes, a medical certificate is required if your sick leave is more than 2 consecutive days.
+   SOURCES: ['leave_policy.txt - Sick Leave']
+   EXPECTED: Yes if sick leave is more than 2 consecutive days
+
+#4 [policy] What is the notice period after confirmation?
+   ANSWER: A confirmed employee must give 60 days notice to resign. The company may also give 60 days notice or pay in lieu of notice to terminate employment.
+   SOURCES: ['notice_period_policy.txt - Notice Period After Confirmation']
+   EXPECTED: 60 days
+
+#5 [policy] What is the notice period during probation?
+   ANSWER: An employee on probation must give 15 days notice to resign.
+   SOURCES: ['notice_period_policy.txt - Notice Period During Probation']
+   EXPECTED: 15 days
+
+#6 [policy] What are the office working hours?
+   ANSWER: Office hours are 9:30 AM to 6:30 PM, Monday to Friday, with a 1-hour lunch break. The 1st and 3rd Saturdays of every month are working days, from 9:30 AM to 1:30 PM.
+   SOURCES: ['wfh_attendance_policy.txt - Office Working Hours']
+   EXPECTED: 9:30 AM to 6:30 PM Mon-Fri; 1st and 3rd Saturdays 9:30 AM to 1:30 PM
+
+#7 [policy] How many days can I work from home?
+   ANSWER: Employees who have completed probation can work from home up to 2 days per week, with the reporting manager's approval. Employees on probation work from the office.
+   SOURCES: ['wfh_attendance_policy.txt - Work From Home Eligibility']
+   EXPECTED: Up to 2 days a week after probation with manager approval
+
+#8 [policy] What happens if I come late three times in a month?
+   ANSWER: Three late marks in a month are counted as one half-day of casual leave.
+   SOURCES: ['wfh_attendance_policy.txt - Late Arrival']
+   EXPECTED: Three late marks count as one half-day of casual leave
+
+#9 [policy] How much internet allowance can I claim?
+   ANSWER: Employees approved for work from home can claim up to Rs. 500 per month for internet charges, with the bill attached.
+   SOURCES: ['reimbursement_policy.txt - Internet Allowance']
+   EXPECTED: Up to Rs. 500 per month with the bill for approved WFH employees
+
+#10 [policy] How many paid holidays are there in 2027?
+   ANSWER: The company observes 7 paid holidays in 2027.
+   SOURCES: ['holiday_list.txt - Number of Holidays']
+   EXPECTED: 7
+
+#11 [policy] When is salary paid?
+   ANSWER: Salary is credited on the last working day of each month.
+   SOURCES: ['company_faqs.txt - When is salary paid?']
+   EXPECTED: On the last working day of each month
+
+#12 [policy] How do I contact HR?
+   ANSWER: You can contact the HR Department by email at hr@samplestartup.example, by phone at 0000-000000 (extension 101), or by visiting during office hours from 10:00 AM to 5:00 PM, Monday to Friday. The HR Manager is Priya Nair.
+   SOURCES: ['hr_contacts.txt - HR Department']
+   EXPECTED: hr@samplestartup.example; ext 101; 10 AM to 5 PM Mon-Fri
+
+#13 [rights] How many weeks of maternity leave are women entitled to?
+   ANSWER: Women employees in covered establishments are entitled to 26 weeks of paid maternity leave for the first two children under the law. |  | Note: This is general information, not legal advice.
+   SOURCES: ['employee_rights.txt - Maternity Benefit']
+   EXPECTED: 26 weeks for the first two children plus not-legal-advice disclaimer
+
+#14 [rights] How is overtime paid?
+   ANSWER: Work beyond normal working hours must be paid at not less than twice the normal rate of wages. Eligibility and rates are also as per applicable law and the employment contract. |  | Note: This is general information, not legal advice.
+   SOURCES: ['employee_rights.txt - Overtime', 'wfh_attendance_policy.txt - Overtime']
+   EXPECTED: At not less than twice the normal rate plus disclaimer
+
+#15 [fallback] Does the company provide health insurance?
+   ANSWER: This is not in the policy, please contact HR. |  | HR CONTACT INFORMATION - Sample Startup Pvt Ltd - HR Department | 1. HR Department | HR Manager: Priya Nair | Email: hr@samplestartup.example | Phone: 0000-000000 (extension 101) | Office hours for HR: 10:00 AM to 5:00 PM, Monday to Friday
+   SOURCES: []
+   EXPECTED: This is not in the policy please contact HR + HR contact details
+
+#16 [fallback] When is the annual appraisal and bonus decided?
+   ANSWER: This is not in the policy, please contact HR. |  | HR CONTACT INFORMATION - Sample Startup Pvt Ltd - HR Department | 1. HR Department | HR Manager: Priya Nair | Email: hr@samplestartup.example | Phone: 0000-000000 (extension 101) | Office hours for HR: 10:00 AM to 5:00 PM, Monday to Friday
+   SOURCES: []
+   EXPECTED: Same fallback
+
+#17 [fallback] Is there a relocation allowance?
+   ANSWER: This is not in the policy, please contact HR. |  | HR CONTACT INFORMATION - Sample Startup Pvt Ltd - HR Department | 1. HR Department | HR Manager: Priya Nair | Email: hr@samplestartup.example | Phone: 0000-000000 (extension 101) | Office hours for HR: 10:00 AM to 5:00 PM, Monday to Friday
+   SOURCES: []
+   EXPECTED: Same fallback
+
+#18 [fallback] What is the yearly training budget per employee?
+   ANSWER: This is not in the policy, please contact HR. |  | HR CONTACT INFORMATION - Sample Startup Pvt Ltd - HR Department | 1. HR Department | HR Manager: Priya Nair | Email: hr@samplestartup.example | Phone: 0000-000000 (extension 101) | Office hours for HR: 10:00 AM to 5:00 PM, Monday to Friday
+   SOURCES: []
+   EXPECTED: Same fallback
+
+#19 [personal] What is my leave balance?
+   ANSWER: I can't look up personal information like your leave balance, hours or salary yet. Please contact HR for that.
+   SOURCES: []
+   EXPECTED: Polite refusal - personal data not supported and no invented number
+
+#20 [personal] How many hours did I work this month and what is my salary?
+   ANSWER: I can't look up personal information like your leave balance, hours or salary yet. Please contact HR for that.
+   SOURCES: []
+   EXPECTED: Polite refusal - no guessing

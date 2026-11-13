@@ -1,0 +1,17 @@
+HR CONTACT INFORMATION - Sample Startup Pvt Ltd
+(Sample data for testing only.)
+
+1. HR Department
+HR Manager: Priya Nair
+Email: hr@samplestartup.example
+Phone: 0000-000000 (extension 101)
+Office hours for HR: 10:00 AM to 5:00 PM, Monday to Friday
+
+2. Payroll Queries
+Email: payroll@samplestartup.example
+
+3. Employee Grievance
+Employees can raise a grievance by email to grievance@samplestartup.example. A reply is given within 3 working days.
+
+4. Office Address
+Sample Startup Pvt Ltd, 2nd Floor, Example Tower, Kochi, Kerala

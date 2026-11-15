@@ -41,31 +41,31 @@ def _hr_contact():
     return hits[0]["text"] if hits else ""
 
 
-def _fallback():
+def _fallback(used_llm=False):
     contact = _hr_contact()
     text = FALLBACK
     if contact:
         text += "\n\n" + contact
-    return {"answer": text, "sources": [], "fallback": True}
+    return {"answer": text, "sources": [], "fallback": True, "used_llm": used_llm}
 
 
 def answer_question(question):
-    """Return {'answer': str, 'sources': list, 'fallback': bool}."""
+    """Return {'answer', 'sources', 'fallback', 'used_llm'}."""
     # 1. Personal data is not supported in v1
     if _is_personal(question):
-        return {"answer": PERSONAL_REPLY, "sources": [], "fallback": True}
+        return {"answer": PERSONAL_REPLY, "sources": [], "fallback": True, "used_llm": False}
 
     # 2. Find the closest policy sections
     hits = store.search(question, k=3)
     if not hits or hits[0]["score"] < SCORE_THRESHOLD:
-        return _fallback()
+        return _fallback(used_llm=False)
 
     # 3. Ask the LLM, using only those sections
     context = "\n\n".join(f"[{i}] {h['text']}" for i, h in enumerate(hits, 1))
     reply = ask_llm(PROMPT.format(context=context, question=question)).strip()
 
     if "NOT_IN_POLICY" in reply:
-        return _fallback()
+        return _fallback(used_llm=True)
 
     # 4. Find which sections the LLM actually used
     used = []
@@ -81,4 +81,4 @@ def answer_question(question):
     sources = [f'{h["source"]} - {h["section"]}' for h in used_hits]
     if any(h["source"] == "employee_rights.txt" for h in used_hits):
         reply += "\n\n" + DISCLAIMER
-    return {"answer": reply, "sources": sources, "fallback": False}
+    return {"answer": reply, "sources": sources, "fallback": False, "used_llm": True}

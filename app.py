@@ -2,7 +2,7 @@ from pathlib import Path
 
 import streamlit as st
 
-from src import auth, store
+from src import auth, limits, store
 from src.answer import answer_question
 from seed_users import seed_demo_users
 
@@ -10,6 +10,8 @@ DOCS_FOLDER = Path("sample_policies")
 DOCS_FOLDER.mkdir(exist_ok=True)
 
 st.set_page_config(page_title="HR Policy Assistant")
+
+quota_slot = None  # sidebar placeholder for "questions left today"
 
 
 @st.cache_resource
@@ -31,6 +33,20 @@ with st.spinner("Setting up demo data (first start only)..."):
 def is_admin():
     user = st.session_state.get("user")
     return bool(user) and user["role"] == "admin"
+
+
+def show_quota():
+    """Update the 'questions left today' line in the sidebar."""
+    u = st.session_state.get("user")
+    if quota_slot is None or not u:
+        return
+    if u["role"] == "admin":
+        quota_slot.caption("Questions today: unlimited (admin)")
+    else:
+        left = limits.remaining(u["username"])
+        quota_slot.caption(
+            f"Questions left today: {left} of {limits.USER_DAILY_LIMIT}"
+        )
 
 
 def forgot_password_section():
@@ -81,7 +97,15 @@ def login_screen():
     if submitted:
         user = auth.verify_user(username, password)
         if user is None:
-            st.error("Wrong username or password.")
+            # Same message for a wrong password, an unknown user and a locked account
+            message = "Wrong username or password."
+            max_fails = getattr(auth, "MAX_LOGIN_FAILS", None)
+            if max_fails:
+                message += (
+                    f" After {max_fails} failed attempts an account is locked for "
+                    f"{getattr(auth, 'LOCK_MINUTES', 15)} minutes."
+                )
+            st.error(message)
         elif not user["active"]:
             st.error("This account is blocked. Please contact your admin or HR.")
         else:
@@ -112,13 +136,45 @@ def chat_screen():
 
     question = st.chat_input("Ask a policy question")
     if question and question.strip():
+        question = question.strip()
+
+        # Too long: rejected, and it does not use up the daily allowance
+        if len(question) > limits.MAX_QUESTION_CHARS:
+            st.warning(
+                f"Your question is {len(question)} characters. Please keep it "
+                f"under {limits.MAX_QUESTION_CHARS}."
+            )
+            return
+
+        username = st.session_state.user["username"]
+        limited = not is_admin()  # the admin is exempt from the daily limits
+
+        # Take one question from the allowance (checked and counted in one step)
+        if limited:
+            allowed, message = limits.reserve(username)
+            if not allowed:
+                st.warning(message)
+                show_quota()
+                return
+
         st.session_state.messages.append({"role": "user", "content": question})
         with st.chat_message("user"):
             st.markdown(question)
 
         with st.chat_message("assistant"):
-            with st.spinner("Checking the policies..."):
-                result = answer_question(question)
+            try:
+                with st.spinner("Checking the policies..."):
+                    result = answer_question(question)
+            except Exception:
+                if limited:
+                    limits.refund(username)  # a failed call does not use a question
+                show_quota()
+                raise
+
+            # Only answers that really called the model use up a question
+            if limited and not result.get("used_llm"):
+                limits.refund(username)
+
             st.markdown(result["answer"])
             if result["sources"]:
                 st.caption("Sources: " + "; ".join(result["sources"]))
@@ -130,6 +186,7 @@ def chat_screen():
                 "sources": result["sources"],
             }
         )
+        show_quota()
 
 
 def documents_screen():
@@ -145,7 +202,23 @@ def documents_screen():
         st.success(flash)
 
     st.subheader("Upload or replace a document")
-    st.caption("Uploading a file with the same name replaces the old version.")
+    st.warning(
+        "Upload company HR policy documents only. Everything you upload can be "
+        "read by every employee through the chat, and matching text is sent to "
+        "the AI service. Never upload documents with personal data, such as CVs, "
+        "payslips or ID numbers."
+    )
+    with st.expander("Document guidelines"):
+        st.markdown(
+            "- PDF, DOCX or TXT files with real text. Scanned images are rejected.\n"
+            "- One topic per file, with a clear title on the first line.\n"
+            "- Numbered sections with a blank line between them work best "
+            "(for example `1. Fridays`).\n"
+            "- Write tables as sentences. Tables inside Word files are skipped.\n"
+            "- Uploading a file with the same name replaces the old version.\n"
+            "- Do not upload the same policy twice under different names.\n"
+            "- Write in English."
+        )
     uploaded = st.file_uploader("Choose a PDF, DOCX or TXT file", type=["pdf", "docx", "txt"])
 
     if uploaded and st.button("Save document"):
@@ -221,7 +294,8 @@ def users_screen():
     st.subheader("Users")
     st.caption(
         "Passwords are stored hashed and can never be displayed. "
-        "To help someone who forgot theirs, generate a one-time code below."
+        "To help someone who forgot theirs, generate a one-time code below. "
+        "Block then Activate also removes a login lockout."
     )
     header = st.columns([3, 2, 3, 2])
     header[0].markdown("**Username**")
@@ -234,6 +308,8 @@ def users_screen():
         c1.write(u["username"])
         c2.write(u["role"])
         status = "Active" if u["active"] else "Blocked"
+        if u.get("locked"):
+            status += " (locked)"
         if u["reset_requested"]:
             status += " (reset requested)"
         c3.write(status)
@@ -310,6 +386,8 @@ if not user:
 
 with st.sidebar:
     st.write(f"Logged in as **{user['username']}** ({user['role']})")
+    quota_slot = st.empty()
+    show_quota()
     pages = ["Chat"]
     if user["role"] == "admin":
         pages += ["Admin: documents", "Admin: users"]
